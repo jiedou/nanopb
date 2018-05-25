@@ -42,6 +42,7 @@ static bool checkreturn pb_enc_fixed_length_bytes(pb_ostream_t *stream, const pb
 #define pb_int64_t int32_t
 #define pb_uint64_t uint32_t
 
+/* 对有符号整数编码的函数 */
 static bool checkreturn pb_encode_negative_varint(pb_ostream_t *stream, pb_uint64_t value);
 #else
 #define pb_int64_t int64_t
@@ -68,11 +69,11 @@ static const pb_encoder_t PB_ENCODERS[PB_LTYPES_COUNT] = {
 /*******************************
  * pb_ostream_t implementation *
  *******************************/
-
+/* 此函数将buf 长度为count 写入stream缓冲区中 */
 static bool checkreturn buf_write(pb_ostream_t *stream, const pb_byte_t *buf, size_t count)
 {
     size_t i;
-    pb_byte_t *dest = (pb_byte_t*)stream->state;
+    pb_byte_t *dest = (pb_byte_t*)stream->state;/* state即为stream中写入字节的长度 */
     stream->state = dest + count;
     
     for (i = 0; i < count; i++)
@@ -539,6 +540,7 @@ bool pb_get_encoded_size(size_t *size, const pb_field_t fields[], const void *sr
  ********************/
 
 #ifdef PB_WITHOUT_64BIT
+/* pb_uint64_t当作32位无符号整数即可 */
 bool checkreturn pb_encode_negative_varint(pb_ostream_t *stream, pb_uint64_t value)
 {
   pb_byte_t buffer[10];
