@@ -202,11 +202,11 @@ typedef uint_least8_t pb_type_t;
 #define PB_HTYPE_MASK     0x30
 
 /**** Field allocation types ****/
- 
-#define PB_ATYPE_STATIC   0x00
-#define PB_ATYPE_POINTER  0x80
-#define PB_ATYPE_CALLBACK 0x40
-#define PB_ATYPE_MASK     0xC0 
+/* pb分配空间的方式 */
+#define PB_ATYPE_STATIC   0x00 /* 静态分配 */
+#define PB_ATYPE_POINTER  0x80 /* 动态分配 */
+#define PB_ATYPE_CALLBACK 0x40 /* 回调函数 */
+#define PB_ATYPE_MASK     0xC0 /*  */
 
 #define PB_ATYPE(x) ((x) & PB_ATYPE_MASK)  /* 1100 0000 */
 #define PB_HTYPE(x) ((x) & PB_HTYPE_MASK)  /* 0011 0000 */
