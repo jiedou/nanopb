@@ -73,15 +73,15 @@ static const pb_encoder_t PB_ENCODERS[PB_LTYPES_COUNT] = {
 static bool checkreturn buf_write(pb_ostream_t *stream, const pb_byte_t *buf, size_t count)
 {
     size_t i;
-    pb_byte_t *dest = (pb_byte_t*)stream->state;/* state即为stream中写入字节的长度 */
-    stream->state = dest + count;
+    pb_byte_t *dest = (pb_byte_t*)stream->state;
+    stream->state = dest + count;/* 指向stream中已写入的buf的末尾 */
     
     for (i = 0; i < count; i++)
         dest[i] = buf[i];
     
     return true;
 }
-
+/* 返回一个使用指定buf的pb_ostream_t       缓冲区最大长度为bufsize*/
 pb_ostream_t pb_ostream_from_buffer(pb_byte_t *buf, size_t bufsize)
 {
     pb_ostream_t stream;
@@ -571,13 +571,15 @@ bool checkreturn pb_encode_varint(pb_ostream_t *stream, pb_uint64_t value)
     pb_byte_t buffer[10];
     size_t i = 0;
     
-    if (value <= 0x7F)
+    if (value <= 0x7F)/* 小于111 1111 可以直接用一个字节表示，节省空间 */
     {
         pb_byte_t v = (pb_byte_t)value;
         return pb_write(stream, &v, 1);
     }
-    
-    while (value)
+
+    /* 每7个比特位编码一次，每个字节的最高位为1说明下个字节还属于这个整数，
+    最后一个字节为0x7F，表示这个整数编码的结束*/
+    while (value) 
     {
         buffer[i] = (pb_byte_t)((value & 0x7F) | 0x80);
         value >>= 7;
@@ -665,7 +667,7 @@ bool checkreturn pb_encode_tag_for_field(pb_ostream_t *stream, const pb_field_t 
     
     return pb_encode_tag(stream, wiretype, field->tag);
 }
-
+/* 字符串的编码方式为长度按varint编码之后直接使用原字符串 */
 bool checkreturn pb_encode_string(pb_ostream_t *stream, const pb_byte_t *buffer, size_t size)
 {
     if (!pb_encode_varint(stream, (pb_uint64_t)size))
@@ -823,14 +825,15 @@ static bool checkreturn pb_enc_bytes(pb_ostream_t *stream, const pb_field_t *fie
     return pb_encode_string(stream, bytes->bytes, bytes->size);
 }
 
-static bool checkreturn pb_enc_string(pb_ostream_t *stream, const pb_field_t *field, const void *src)
+static bool checkreturn pb_enc_string(pb_ostream_t *stream, const pb_field_t *field, 
+                                              const void *src)
 {
     size_t size = 0;
     size_t max_size = field->data_size;
     const char *p = (const char*)src;
     
     if (PB_ATYPE(field->type) == PB_ATYPE_POINTER)
-        max_size = (size_t)-1;
+        max_size = (size_t)-1;/* 将-1强转为 size_t类型 */
 
     if (src == NULL)
     {
@@ -839,6 +842,7 @@ static bool checkreturn pb_enc_string(pb_ostream_t *stream, const pb_field_t *fi
     else
     {
         /* strnlen() is not always available, so just use a loop */
+	    /* strnlen()函数并不总是可用的，所以在这里自己算字符串长度 */
         while (size < max_size && *p != '\0')
         {
             size++;
