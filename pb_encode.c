@@ -472,7 +472,7 @@ static bool checkreturn encode_extension_field(pb_ostream_t *stream,
 /*********************
  * Encode all fields *
  *********************/
-
+/* 去掉指针的const修饰符 */
 static void *pb_const_cast(const void *p)
 {
     /* Note: this casts away const, in order to use the common field iterator

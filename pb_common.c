@@ -21,16 +21,16 @@ bool pb_field_iter_next(pb_field_iter_t *iter)
 {
     const pb_field_t *prev_field = iter->pos;
 
-    if (prev_field->tag == 0)
+    if (prev_field->tag == 0) /* 处理空消息类型 */
     {
         /* Handle empty message types, where the first field is already the terminator.
          * In other cases, the iter->pos never points to the terminator. */
         return false;
     }
     
-    iter->pos++;
+    iter->pos++;/* 下一个字段 */
     
-    if (iter->pos->tag == 0)
+    if (iter->pos->tag == 0)/* 如果下一个字段tag为0 */
     {
         /* Wrapped back to beginning, reinitialize */
         (void)pb_field_iter_begin(iter, iter->start, iter->dest_struct);

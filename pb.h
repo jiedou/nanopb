@@ -247,11 +247,11 @@ typedef struct pb_field_s pb_field_t;
 struct pb_field_s {
     pb_size_t tag;
     pb_type_t type;
-    pb_size_t data_offset; /* Offset of field data, relative to previous field. */
+    pb_size_t data_offset; /* 相对于上个字段的偏移量 Offset of field data, relative to previous field. */
     pb_ssize_t size_offset; /* Offset of array size or has-boolean, relative to data */
     pb_size_t data_size; /* Data size in bytes for a single item */
     pb_size_t array_size; /* Maximum number of entries in array */
-    
+
     /* Field definitions for submessage
      * OR default value for all other non-array, non-callback types
      * If null, then field will zeroed. */
@@ -396,7 +396,7 @@ struct pb_extension_s {
 
 /* These macros are used to declare pb_field_t's in the constant array. */
 /* Size of a structure member, in bytes. */
-#define pb_membersize(st, m) (sizeof ((st*)0)->m)
+#define pb_membersize(st, m) (sizeof ((st*)0)->m)  /* 注意这里的宏展开为 sizeof (int)形式与平常的使用有所不同 */
 /* Number of entries in an array. */
 #define pb_arraysize(st, m) (pb_membersize(st, m) / pb_membersize(st, m[0]))
 /* Delta from start of one member to the start of another member. */
@@ -535,7 +535,19 @@ struct pb_extension_s {
  * - Previous field name (or field name again for first field)
  * - Pointer to default value or submsg fields.
  */
+/* PB_FIELD(  1, INT32   , REQUIRED, STATIC  , FIRST, SimpleMessage, lucky_number, lucky_number, 0)
 
+   PB_REQUIRED_STATIC(1,SimpleMessage,lucky_number,
+   PB_DATAOFFSET_FIRST(SimpleMessage,lucky_number,lucky_number),PB_LTYPE_MAP_INT32,0)
+   
+   {1, 
+   PB_ATYPE_STATIC | PB_HTYPE_REQUIRED | PB_LTYPE_MAP_INT32, 
+   ((size_t)(&((SimpleMessage *)0)->lucky_number)),
+   0, 
+   (sizeof ((SimpleMessage*)0)->lucky_number), 
+   0, 
+   0}
+*/
 #define PB_FIELD(tag, type, rules, allocation, placement, message, field, prevfield, ptr) \
         PB_ ## rules ## _ ## allocation(tag, message, field, \
         PB_DATAOFFSET_ ## placement(message, field, prevfield), \
