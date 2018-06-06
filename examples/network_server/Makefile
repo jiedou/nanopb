@@ -7,11 +7,13 @@ CFLAGS += -I$(NANOPB_DIR)
 
 all: server client
 
-.SUFFIXES:
+#.SUFFIXES:
 
 clean:
 	rm -f server client fileproto.pb.c fileproto.pb.h
 
-%: %.c common.c fileproto.pb.c
+client: client.c common.c fileproto.pb.c
 	$(CC) $(CFLAGS) -o $@ $^ $(NANOPB_CORE)
 
+server: server.c common.c fileproto.pb.c
+	$(CC) $(CFLAGS) -o $@ $^ $(NANOPB_CORE)
